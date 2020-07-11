@@ -32,30 +32,31 @@ def sendPost(post,chat_id,vkFeed):
     print(text)
     try:
         for attachment in post['attachments']:
-            link = ""
-            if attachment['type'] == 'photo':
-                link = attachment['photo']['sizes'][-1]['url']
-                file = urllib.request.urlopen(link).read()
-                bot.send_photo(chat_id, file)
 
-            elif attachment['type'] == 'video':
-                link = "https://vk.com/im?z=video" + str(attachment['video']['owner_id']) + "_" + str(attachment['video']['id'])
-                bot.send_message(chat_id, "<b><i>" + link + "</i></b>", parse_mode='html')
-            elif attachment['type'] == 'doc':
-                link = attachment['doc']['url']
-                file = urllib.request.urlopen(link).read()
-                bot.send_document(chat_id, file)
-            elif attachment['type'] == 'audio':
-                link = attachment['audio']['url']
-                file = urllib.request.urlopen(link).read()
-                bot.send_document(chat_id, file)
-            elif attachment['type'] == 'link':
-                link = attachment['link']['url']
-                bot.send_message(chat_id,"["+attachment['link']['title'] +"] ("+link+") \n" , parse_mode='html')
-            else:
-                bot.send_message(chat_id, "[" + attachment['type']+ "]")
+            try:
+                if attachment['type'] == 'photo':
+                    link = attachment['photo']['sizes'][-1]['url']
+                    file = urllib.request.urlopen(link).read()
+                    bot.send_photo(chat_id, file)
 
-
+                elif attachment['type'] == 'video':
+                    link = "https://vk.com/id1?z=video" + str(attachment['video']['owner_id']) + "_" + str(attachment['video']['id'])
+                    bot.send_message(chat_id, "<b><i>" + link + "</i></b>", parse_mode='html')
+                elif attachment['type'] == 'doc':
+                    link = attachment['doc']['url']
+                    file = urllib.request.urlopen(link).read()
+                    bot.send_document(chat_id, file)
+                elif attachment['type'] == 'audio':
+                    link = attachment['audio']['url']
+                    file = urllib.request.urlopen(link).read()
+                    bot.send_document(chat_id, file)
+                elif attachment['type'] == 'link':
+                    link = attachment['link']['url']
+                    bot.send_message(chat_id,"["+attachment['link']['title'] +"] ("+link+") \n" , parse_mode='html')
+                else:
+                    bot.send_message(chat_id, "[" + attachment['type']+ "]")
+            except: pass;
+        #end of for attachment in post['attachments']:
 
     except:
         pass
