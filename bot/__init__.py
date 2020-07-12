@@ -8,6 +8,15 @@ from io import StringIO
 bot = telebot.TeleBot("867555083:AAGtAipW3uLCp9FEWdS6BP8bNOpCbp6zSho");
 users = []
 
+def log(data):
+    print(data)
+    try:
+        logFile = open("bot.log","a+")
+        logFile.writelines(data);
+        logFile.close();
+    except: print("cant log"); pass;
+    return
+
 def getSourceName(sources, source_id):
     sourceName = ""
     if source_id > 0:
@@ -32,7 +41,7 @@ def sendPost(post,chat_id,vkFeed):
     bot.send_message(chat_id,text,parse_mode='html');
 
 
-    print(text)
+    log(text)
     try:
         for attachment in post['attachments']:
 
@@ -67,10 +76,10 @@ def sendPost(post,chat_id,vkFeed):
 
 
 def watchFeed(token, chat_id):
-    print("_____________________________________________\nStart watching\n");
-    print("chat_id: "+str(chat_id));
-    print("token: "+str(token))
-    print("_____________________________________________")
+    log("_____________________________________________\nStart watching\n");
+    log("chat_id: " + str(chat_id));
+    log("token: " + str(token))
+    log("_____________________________________________")
     bot.send_message(chat_id,"chat_id: "+str(chat_id))
 
 
@@ -116,14 +125,14 @@ def loadUserList():
 
 def addUser(chat_id,token):
     users.append((chat_id,token))
-    print("added "+ str(chat_id))
+    log("added " + str(chat_id))
     saveUserList()
 
 def removeUser(chat_id):
     for i,item in enumerate(users):
         if item[0] == chat_id:
             users.remove(users[i])
-            print("removed "+ str(chat_id))
+            log("removed " + str(chat_id))
             saveUserList()
             return
 
@@ -134,7 +143,7 @@ if __name__ == '__main__':
 
     loadUserList()
     for user in users:
-        print("started thread for " + str(user[0]) + "  with token  " + user[1])
+        log("started thread for " + str(user[0]) + "  with token  " + user[1])
         thread = Thread(target=watchFeed, args=(user[1],user[0]))
         thread.start()
         thread.join()
@@ -146,7 +155,7 @@ if __name__ == '__main__':
         if message.text == "/start":
             bot.send_message(message.from_user.id,"Отправь сгенерированный токен https://oauth.vk.com/authorize?client_id=6146827&scope=1073737727&redirect_uri=https://oauth.vk.com/blank.html&display=page&response_type=token&revoke=1")
         else:
-            print(message.text)
+            log(message.text)
             try:
                 addUser(message.from_user.id, message.text)
                 watchFeed(message.text, message.from_user.id)
