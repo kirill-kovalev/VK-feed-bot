@@ -1,9 +1,12 @@
 import telebot
 import vk
-import time, datetime, sys, urllib
+import time, datetime, sys, urllib , json
+from threading import Thread
+from io import StringIO
 
-bot = telebot.TeleBot(sys.argv[1]);
 
+bot = telebot.TeleBot("867555083:AAGtAipW3uLCp9FEWdS6BP8bNOpCbp6zSho");
+users = []
 
 def getSourceName(sources, source_id):
     sourceName = ""
@@ -23,7 +26,7 @@ def getSourceName(sources, source_id):
 def sendPost(post,chat_id,vkFeed):
     sourceName = getSourceName(vkFeed, post['source_id'])
     postTime = datetime.datetime.fromtimestamp(post['date'])
-    bot.send_message(chat_id, '⁣⁣⁣⁣⁣\n\n\n─────────────────────────────────────────────────────────────────────────────────\n\n\n⁣⁣⁣⁣⁣')
+    bot.send_message(chat_id, '⁣⁣⁣⁣⁣\n\n\n⁣⁣⁣⁣⁣')
     text = '<b>[' + sourceName + ']  ' + postTime.strftime(
         "<i>%d/%m</i> в <i>%H:%M</i>") + ':</b>\n' + post['text'] + "\n"
     bot.send_message(chat_id,text,parse_mode='html');
@@ -66,7 +69,7 @@ def sendPost(post,chat_id,vkFeed):
 def watchFeed(token, chat_id):
     print("_____________________________________________\nStart watching\n");
     print("chat_id: "+str(chat_id));
-    print("token: "+token)
+    print("token: "+str(token))
     print("_____________________________________________")
     bot.send_message(chat_id,"chat_id: "+str(chat_id))
 
@@ -94,14 +97,49 @@ def watchFeed(token, chat_id):
 
 
 
+def saveUserList():
+    usersJson = json.dumps(users)
+    file = open("users.json","w")
+    file.writelines(usersJson)
+    file.close()
 
+def loadUserList():
+    try:
+        file = open("users.json", "r")
+        usersJson = file.readlines(1)[0]
+        file.close()
 
+        decoded = json.load(StringIO(usersJson))
+        for i in decoded:
+            users.append(i)
+    except: pass
 
+def addUser(chat_id,token):
+    users.append((chat_id,token))
+    print("added "+ str(chat_id))
+    saveUserList()
+
+def removeUser(chat_id):
+    for i,item in enumerate(users):
+        if item[0] == chat_id:
+            users.remove(users[i])
+            print("removed "+ str(chat_id))
+            saveUserList()
+            return
 
 
 
 
 if __name__ == '__main__':
+
+    loadUserList()
+    for user in users:
+        print("started thread for " + str(user[0]) + "  with token  " + user[1])
+        thread = Thread(target=watchFeed, args=(user[1],user[0]))
+        thread.start()
+        thread.join()
+
+
 
     @bot.message_handler(content_types=['text'])
     def get_text_messages(message):
@@ -110,9 +148,10 @@ if __name__ == '__main__':
         else:
             print(message.text)
             try:
+                addUser(message.from_user.id, message.text)
                 watchFeed(message.text, message.from_user.id)
             except vk.exceptions.VkAPIError:
-
+                removeUser(message.from_user.id)
                 bot.send_message(message.from_user.id, "неверный токен")
         return
 
