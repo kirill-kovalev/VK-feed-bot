@@ -1,11 +1,17 @@
 import telebot
 import vk
-import time, datetime, sys, urllib , json
 from threading import Thread
+import time, datetime, sys, urllib , json
+import re
+import os.path
+import tempfile
+import subprocess
+import requests
+import traceback
 from io import StringIO
 
 
-bot = telebot.TeleBot("867555083:AAGtAipW3uLCp9FEWdS6BP8bNOpCbp6zSho");
+bot = telebot.TeleBot(sys.argv[1]);
 users = []
 
 def log(data):
@@ -16,6 +22,50 @@ def log(data):
         logFile.close();
     except: print("cant log"); pass;
     return
+
+
+
+regex = "https.*key.pub"
+regex_2 = '"https.*pub?.*"'
+regex_3 = 'ts?.*'
+
+
+def parse_m3u8(url):
+    urldir = os.path.dirname(url)
+    playlist = requests.get(url).text
+    keyurl = re.findall(regex, playlist)[0]
+    key = requests.get(keyurl).text
+
+    for match in re.finditer(regex_2, playlist, re.MULTILINE):
+        playlist = playlist.replace(match.group(), 'key.pub')
+
+    for match in re.finditer(regex_3, playlist):
+        playlist = playlist.replace(match.group(), 'ts')
+
+    return playlist, key, urldir
+
+
+def download_m3u8(playlist, key, urldir, output='out.mp3'):
+    ts_list = [x for x in playlist.split('\n') if not x.startswith('#')]
+
+    with tempfile.TemporaryDirectory(output) as dir_:
+        os.chdir(dir_)
+        for file in ts_list[:-1]:
+            with open(file, 'wb') as audio:
+                audio.write(requests.get(os.path.join(urldir, file)).content)
+        with open('key.pub', 'w') as keyfile:
+            keyfile.write(key)
+        with open('index.m3u8', 'w') as playlist_file:
+            playlist_file.write(playlist)
+
+        subprocess.call(['ffmpeg', '-allowed_extensions', "ALL", '-protocol_whitelist',
+                         "crypto,file", '-i', 'index.m3u8', '-c', 'copy', f'{output}'])
+
+        return open(output, 'rb').read()
+
+
+
+
 
 def getSourceName(sources, source_id):
     sourceName = ""
@@ -42,35 +92,58 @@ def sendPost(post,chat_id,vkFeed):
 
 
     log(text)
-    try:
-        for attachment in post['attachments']:
 
+    try:
+        attachments = {
+            'photo' : [],
+            'video': [],
+            'doc': [],
+            'audio' :[],
+            'link': [],
+            'any' : []
+        }
+        for attachment in post['attachments']:
             try:
                 if attachment['type'] == 'photo':
                     link = attachment['photo']['sizes'][-1]['url']
                     file = urllib.request.urlopen(link).read()
-                    bot.send_photo(chat_id, file)
-
+                    attachments['photo'].append(file)
                 elif attachment['type'] == 'video':
                     link = "https://vk.com/id1?z=video" + str(attachment['video']['owner_id']) + "_" + str(attachment['video']['id'])
                     bot.send_message(chat_id, "<b><i>" + link + "</i></b>", parse_mode='html')
                 elif attachment['type'] == 'doc':
                     link = attachment['doc']['url']
-                    file = urllib.request.urlopen(link).read()
-                    bot.send_document(chat_id, file)
+                    data = urllib.request.urlopen(link).read()
+                    tmpFile = open(attachment['doc']['title'],"wb")
+                    tmpFile.write(data)
+                    tmpFile.close()
+                    tmpFile = open(attachment['doc']['title'], "rb")
+                    bot.send_document(chat_id, tmpFile)
+                    bot.send_document(chat_id, attachment['doc']['title'])
+
+
                 elif attachment['type'] == 'audio':
                     link = attachment['audio']['url']
-                    file = urllib.request.urlopen(link).read()
-                    bot.send_document(chat_id, file)
+                    result = parse_m3u8(link)
+                    bot.send_audio(chat_id, download_m3u8(*result),
+                                   title=attachment['audio']['title'],
+                                   performer = attachment['audio']['artist'] )
                 elif attachment['type'] == 'link':
                     link = attachment['link']['url']
                     bot.send_message(chat_id,"["+attachment['link']['title'] +"] ("+link+") \n" , parse_mode='html')
                 else:
                     bot.send_message(chat_id, "[" + attachment['type']+ "]")
-            except: pass;
+            except:
+                print(traceback.format_exc())
+                pass;
         #end of for attachment in post['attachments']:
-
+        if len(attachments['photo']) > 1:
+            bot.send_media_group(chat_id,
+                                 [telebot.types.InputMediaPhoto(photo) for photo in attachments['photo']])
+        elif len(attachments['photo']) > 0:
+            bot.send_photo(chat_id,attachments['photo'][0])
     except:
+        print(traceback.format_exc())
         pass
     time.sleep(1)
 
@@ -129,6 +202,7 @@ def addUser(chat_id,token):
     saveUserList()
 
 def removeUser(chat_id):
+    return
     for i,item in enumerate(users):
         if item[0] == chat_id:
             users.remove(users[i])
@@ -140,7 +214,7 @@ def removeUser(chat_id):
 
 
 if __name__ == '__main__':
-
+    print("hello")
     loadUserList()
     for user in users:
         log("started thread for " + str(user[0]) + "  with token  " + user[1])
