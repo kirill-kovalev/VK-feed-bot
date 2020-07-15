@@ -1,8 +1,8 @@
 import vk
 import traceback
-from bot.utils import *
+from utils import *
+from TGBot import TG
 
-import TG
 
 
 class User:
@@ -12,7 +12,7 @@ class User:
     API: vk.API = None
     chat_id: int = None
     token: str = ""
-    last_upd_time = time.time() - 600
+    last_upd_time = time.time() - 300
 
     def __init__(self, chat_id: int, token: str):
         log("started user " + str(chat_id) + " with token " + token)
