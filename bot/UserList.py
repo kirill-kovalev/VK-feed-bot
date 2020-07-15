@@ -1,6 +1,6 @@
 from bot.utils import *
 import json
-from bot.User import *
+from User import *
 
 class UserList:
     class UserExists(Exception):

@@ -1,0 +1,8 @@
+[1594844245.083895] ------------------
+Traceback (most recent call last):
+  File "/Users/alphanet/PycharmProjects/VKtoTG/bot/UserList.py", line 63, in load
+    json = file.readlines(1)[0]
+IndexError: list index out of range
+
+
+[None]----------------------

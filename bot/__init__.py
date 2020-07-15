@@ -1,9 +1,9 @@
 
 import sys
-from bot.utils import *
-from bot.TGBot import *
-from bot.User import *
-from bot.UserList import *
+from utils import *
+from TGBot import *
+from User import *
+from UserList import *
 
 
 userList = UserList()

@@ -2,10 +2,10 @@
 import traceback
 import urllib,datetime
 import tempfile
-from bot.utils import *
+from utils import *
 
 from telebot import *
-from bot.AudioProc import AudioProc
+from AudioProc import AudioProc
 
 
 

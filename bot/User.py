@@ -2,7 +2,7 @@ import vk
 import traceback
 from bot.utils import *
 
-from bot import TG
+import TG
 
 
 class User:
