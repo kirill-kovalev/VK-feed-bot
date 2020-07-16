@@ -21,7 +21,7 @@ class User:
             self.API = vk.API(VKSession, v='5.111')
             self.token = token
             self.chat_id = chat_id
-
+            TG.bot.send_message(chat_id,"Начинаю отправку новостей...")
             self.start()
 
         except:
