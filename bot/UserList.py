@@ -63,5 +63,5 @@ class UserList:
             json = file.readlines(1)[0]
             self.fromJSON(json)
         except:
-            log(traceback.format_exc())
+            trace_exc()
             pass;

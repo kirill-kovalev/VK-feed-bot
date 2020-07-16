@@ -25,7 +25,7 @@ class User:
             self.start()
 
         except:
-            log(traceback.format_exc())
+            trace_exc()
             pass;
 
     def start(self):

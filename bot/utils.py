@@ -12,8 +12,7 @@ def log(message , source = None):
         logFile.close();
     except:
 
-        print("can't write log");
-        print(traceback.format_exc())
+        trace_exc()
         pass;
     return
 
@@ -26,3 +25,15 @@ def call_repeatedly(interval, func, *args):
             func(*args)
     Thread(target=loop).start()
     return stopped.set
+
+def trace_exc():
+    err = str(time.time()) +"\n"+traceback.format_exc()
+    try:
+        logFile = open("errors","a+")
+        logFile.writelines(err);
+        logFile.close();
+    except:
+
+        print(err)
+        pass;
+    return

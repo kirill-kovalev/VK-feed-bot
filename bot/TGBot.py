@@ -1,9 +1,7 @@
 
-import traceback
 import urllib,datetime
 import tempfile
 from utils import *
-
 from telebot import *
 from AudioProc import AudioProc
 
@@ -44,47 +42,48 @@ class TGBot:
             'any': []
         }
 
+        try:
+            for attachment in post['attachments']:
 
-        for attachment in post['attachments']:
+                if attachment['type'] == 'photo':
+                    link = attachment['photo']['sizes'][-1]['url']
+                    file = urllib.request.urlopen(link).read()
+                    photo = types.InputMediaPhoto(file)
+                    attachments['photo'].append(photo)
+                # end of if attachment['type'] == 'photo':
+                elif attachment['type'] == 'video':
+                    link = "https://vk.com/id1?z=video" + str(attachment['video']['owner_id']) + "_" + str(
+                        attachment['video']['id'])
+                # end of elif attachment['type'] == 'video':
+                elif attachment['type'] == 'doc':
+                    link = attachment['doc']['url']
+                    data = urllib.request.urlopen(link).read()
 
-            if attachment['type'] == 'photo':
-                link = attachment['photo']['sizes'][-1]['url']
-                file = urllib.request.urlopen(link).read()
-                photo = types.InputMediaPhoto(file)
-                attachments['photo'].append(photo)
-            # end of if attachment['type'] == 'photo':
-            elif attachment['type'] == 'video':
-                link = "https://vk.com/id1?z=video" + str(attachment['video']['owner_id']) + "_" + str(
-                    attachment['video']['id'])
-            # end of elif attachment['type'] == 'video':
-            elif attachment['type'] == 'doc':
-                link = attachment['doc']['url']
-                data = urllib.request.urlopen(link).read()
+                    with tempfile.TemporaryDirectory(attachment['doc']['title']) as dir_:
+                        tmpFile = open(dir_ + attachment['doc']['title'], "wb")
+                        tmpFile.write(data)
+                        tmpFile.close()
+                        attachments['doc'].append(dir_ + attachment['doc']['title'])
+                    # end of with
 
-                with tempfile.TemporaryDirectory(attachment['doc']['title']) as dir_:
-                    tmpFile = open(dir_ + attachment['doc']['title'], "wb")
-                    tmpFile.write(data)
-                    tmpFile.close()
-                    attachments['doc'].append(dir_ + attachment['doc']['title'])
-                # end of with
-
-            # end of elif attachment['type'] == 'doc':
-            elif attachment['type'] == 'audio':
-                link = attachment['audio']['url']
-                result = AudioProc().parse_m3u8(link)
-                attachments['audio'].append({
-                    'data' : AudioProc().download_m3u8(*result),
-                    'title' : attachment['audio']['title'],
-                    'performer' : attachment['audio']['artist']
-                })
-            # end of elif attachment['type'] == 'audio':
-            elif attachment['type'] == 'link':
-                link = attachment['link']['url']
-                attachments['link'].append(link)
-            #end of elif attachment['type'] == 'link':
-            else:
-                attachments['any'].append( "[" + attachment['type'] + "]")
-            # end of
+                # end of elif attachment['type'] == 'doc':
+                elif attachment['type'] == 'audio':
+                    link = attachment['audio']['url']
+                    result = AudioProc().parse_m3u8(link)
+                    attachments['audio'].append({
+                        'data' : AudioProc().download_m3u8(*result),
+                        'title' : attachment['audio']['title'],
+                        'performer' : attachment['audio']['artist']
+                    })
+                # end of elif attachment['type'] == 'audio':
+                elif attachment['type'] == 'link':
+                    link = attachment['link']['url']
+                    attachments['link'].append(link)
+                #end of elif attachment['type'] == 'link':
+                else:
+                    attachments['any'].append( "[" + attachment['type'] + "]")
+                # end of
+        except: pass;
 
         # end of for attachment in post['attachments']
         return attachments
