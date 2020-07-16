@@ -54,6 +54,7 @@ class TGBot:
                 elif attachment['type'] == 'video':
                     link = "https://vk.com/id1?z=video" + str(attachment['video']['owner_id']) + "_" + str(
                         attachment['video']['id'])
+                    attachments['video'].append(link)
                 # end of elif attachment['type'] == 'video':
                 elif attachment['type'] == 'doc':
                     link = attachment['doc']['url']
@@ -108,8 +109,10 @@ class TGBot:
 
         for link in attachments['link']:
             text+= "\n"+ link
+        for attach in attachments['any']:
+            text+= "\n["+ attach+"]\n"
 
-
+        log(text)
         if not len(attachments['photo']) == 0:
             attachments['photo'][0].parse_mode = 'html'
             attachments['photo'][0].caption = text

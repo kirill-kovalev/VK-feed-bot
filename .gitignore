@@ -1,2 +1,5 @@
 # Project exclude paths
 /venv/
+/bot/users.json
+/bot/errors
+/bot/bot.log

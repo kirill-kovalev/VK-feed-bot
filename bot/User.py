@@ -15,7 +15,7 @@ class User:
     last_upd_time = time.time() - 300
 
     def __init__(self, chat_id: int, token: str):
-        log("started user " + str(chat_id) + " with token " + token)
+        log("started user " + str(chat_id) + " with token " + getToken(token))
         try:
             VKSession = vk.Session(access_token=token)
             self.API = vk.API(VKSession, v='5.111')
@@ -26,6 +26,7 @@ class User:
 
         except:
             trace_exc()
+            raise self.WrongToken()
             pass;
 
     def start(self):

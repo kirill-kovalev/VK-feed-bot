@@ -1,6 +1,7 @@
 import time
 from threading import Event, Thread
 import traceback
+import re
 
 
 def log(message , source = None):
@@ -37,3 +38,8 @@ def trace_exc():
         print(err)
         pass;
     return
+
+def getToken(string:str):
+    tokenRegexp = "[a-f0-9]{85}"
+
+    return re.findall(tokenRegexp,string)[0]
