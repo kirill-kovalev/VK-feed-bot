@@ -33,7 +33,7 @@ class UserList:
         raise self.UserNotExists
 
     def toJSON(self):
-        users = [ (user.chat_id,user.token) for user in self.userList]
+        users = [ (user.chat_id,user.token,user.last_upd_time) for user in self.userList]
         return json.dumps(users)
 
     def fromJSON(self,string:str):
@@ -42,7 +42,10 @@ class UserList:
         users = json.loads(string)
         for user in users:
             try:
-                self.userList.append(User(user[0],user[1]))
+                try:
+                    self.userList.append(User(user[0],user[1],user[2]))
+                except IndexError :
+                    self.userList.append(User(user[0], user[1]))
             except: pass
 
     def save(self):
@@ -58,10 +61,10 @@ class UserList:
             pass
 
     def load(self):
-        try:
-            file = open("users.json", "r");
-            json = file.readlines(1)[0]
-            self.fromJSON(json)
-        except:
-            trace_exc()
-            pass;
+    # try:
+        file = open("users.json", "r");
+        json = file.readlines(1)[0]
+        self.fromJSON(json)
+    # except:
+    #     trace_exc()
+    #     pass;

@@ -9,28 +9,32 @@ class User:
     class WrongToken(Exception):
         def __init__(self): return;
 
+    stop = None
     API: vk.API = None
     chat_id: int = None
     token: str = ""
-    last_upd_time = time.time() - 300
+    last_upd_time = None
+    upd_timeout = 10
 
-    def __init__(self, chat_id: int, token: str):
+
+    def __init__(self, chat_id: int, token: str , upd_time = time.time() - 300 ):
         log("started user " + str(chat_id) + " with token " + getToken(token))
         try:
             VKSession = vk.Session(access_token=token)
             self.API = vk.API(VKSession, v='5.111')
             self.token = token
             self.chat_id = chat_id
-            TG.bot.send_message(chat_id,"Начинаю отправку новостей...")
+            self.last_upd_time = upd_time
+            TG.bot.send_message(chat_id, "Начинаю отправку новостей...")
             self.start()
 
-        except:
+        except Exception:
             trace_exc()
             raise self.WrongToken()
             pass;
 
     def start(self):
-        self.stop = call_repeatedly(10, self.watch)
+        self.stop = call_repeatedly(self.upd_timeout, self.watch)
 
     def __del__(self):
         log("stoped user " + str(self.chat_id) + " with token " + self.token)
@@ -45,9 +49,13 @@ class User:
 
         self.last_upd_time = time.time()
 
-        list = vkFeed["items"]
-        for post in list[::-1]:
-            TG.sendPost(post, self.chat_id, vkFeed)
+        postList = vkFeed["items"]
+        for post in postList[::-1]:
+            try:
+                TG.sendPost(post, self.chat_id, vkFeed)
+            except:
+                trace_exc()
+                TG.bot.send_message(self.chat_id,traceback.format_exc())
 
         # end of for post in vkFeed["items"]
 
