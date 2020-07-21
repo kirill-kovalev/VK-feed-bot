@@ -30,7 +30,7 @@ def call_repeatedly(interval, func, *args):
 def trace_exc():
     err = str(time.time()) +"\n"+traceback.format_exc()
     try:
-        logFile = open("errors","a+")
+        logFile = open("errors.log","a+")
         logFile.writelines(err);
         logFile.close();
     except:
@@ -41,5 +41,7 @@ def trace_exc():
 
 def getToken(string:str):
     tokenRegexp = "[a-f0-9]{85}"
-
     return re.findall(tokenRegexp,string)[0]
+
+def str_split(string:str, size:int):
+    return re.findall('.{%s}' % size, string)

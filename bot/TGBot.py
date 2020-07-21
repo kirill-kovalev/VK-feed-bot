@@ -69,13 +69,15 @@ class TGBot:
 
                 # end of elif attachment['type'] == 'doc':
                 elif attachment['type'] == 'audio':
-                    link = attachment['audio']['url']
-                    result = AudioProc().parse_m3u8(link)
-                    attachments['audio'].append({
-                        'data' : AudioProc().download_m3u8(*result),
-                        'title' : attachment['audio']['title'],
-                        'performer' : attachment['audio']['artist']
-                    })
+                    try:
+                        link = attachment['audio']['url']
+                        result = AudioProc().parse_m3u8(link)
+                        attachments['audio'].append({
+                            'data' : AudioProc().download_m3u8(*result),
+                            'title' : attachment['audio']['title'],
+                            'performer' : attachment['audio']['artist']
+                        })
+                    except: pass
                 # end of elif attachment['type'] == 'audio':
                 elif attachment['type'] == 'link':
                     link = attachment['link']['url']
@@ -94,29 +96,36 @@ class TGBot:
     def sendPost(self,post, chat_id, vkFeed):
         sourceName = self.getSourceName(vkFeed, post['source_id'])
         postTime = datetime.datetime.fromtimestamp(post['date'])
-        # self.bot.send_message(chat_id, '⁣⁣⁣⁣⁣\n\n\n⁣⁣⁣⁣⁣')
         text = '<b>[' + sourceName + ']  ' + postTime.strftime(
             "<i>%d/%m</i> в <i>%H:%M</i>") + ':</b>\n' + post['text'] + "\n"
 
 
-        log(text , chat_id)
+
 
 
         attachments = self.getAttachments(post)
 
         for video in attachments['video']:
             text+= "\n"+ video
-
         for link in attachments['link']:
             text+= "\n"+ link
         for attach in attachments['any']:
             text+= "\n["+ attach+"]\n"
 
-        log(text)
+
         if not len(attachments['photo']) == 0:
-            attachments['photo'][0].parse_mode = 'html'
-            attachments['photo'][0].caption = text
-            self.bot.send_media_group(chat_id,attachments['photo'])
+            try:
+                attachments['photo'][0].parse_mode = 'html'
+                attachments['photo'][0].caption = text
+                self.bot.send_media_group(chat_id,attachments['photo'])
+            except:
+                # attachments['photo'][0].caption = ''
+                self.bot.send_media_group(chat_id, attachments['photo'])
+                for t in str_split(text, 4090):
+                    print("_________________________________________________________\nhey \n"+t+"_________________________________________________________\n")
+                    # self.bot.send_message(chat_id,t,parse_mode='html')
+                pass
+
         else:
             self.bot.send_message(chat_id, text, parse_mode='html');
 

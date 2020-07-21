@@ -14,11 +14,11 @@ class User:
     chat_id: int = None
     token: str = ""
     last_upd_time = None
-    upd_timeout = 10
+    upd_timeout = 60
 
 
     def __init__(self, chat_id: int, token: str , upd_time = time.time() - 300 ):
-        log("started user " + str(chat_id) + " with token " + getToken(token))
+        log("started user " + str(chat_id) + " with token " + token)
         try:
             VKSession = vk.Session(access_token=token)
             self.API = vk.API(VKSession, v='5.111')
